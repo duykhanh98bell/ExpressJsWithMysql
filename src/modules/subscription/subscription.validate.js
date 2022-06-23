@@ -17,9 +17,6 @@ export const subEditValidate = (data) => {
     const schema = Joi.object({
         subStatus: Joi.string().valid(...Object.values(subStatusEnum)),
         dunningCode: Joi.number().valid(...Object.values(dunningCodeEnum)),
-        billingDate: Joi.number().required(),
-        currentIntervalStartDate: Joi.date().required(),
-        currentIntervalEndDate: Joi.date().required()
     })
     return schema.validate(data);
 }

@@ -1,9 +1,9 @@
 export const pagination = async (pagination,count) => {
-    if(!pagination && !pagination?.page && !pagination?.perPage) {
+    if(!pagination && !pagination?.page) {
         return;
     }
-    const page = +pagination.page;
-    const perPage = +pagination.perPage;
+    const page = +pagination?.page || 1;
+    const perPage = +pagination?.perPage || 20;
     const pagesCount = Math.ceil(count / perPage);
 
     return {

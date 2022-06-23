@@ -6,21 +6,14 @@ const port = process.env.PORT;
 import pkg from 'body-parser';
 const { json } = pkg;
 import { login,register,getAllUsers,findOne,createNewUser,editUser,deleteUser } from "./modules/auth/auth.controller.js";
-import { createSubscription,getSubscription,getSubscriptionList,editSubscription } from "./modules/subscription/subscription.controller.js";
+import { createSubscription,getSubscription,getSubscriptionList,editSubscription,deleteOne,triggerGenStatement,triggerGenerateDunning } from "./modules/subscription/subscription.controller.js";
+import { findAllStatement,findOneStatement } from "./modules/statement/statement.controller.js";
 
-// middleware
 app.use(json());
-
-// connect MySql
-// const conn = require("./connectDb/connection");
 
 app.get('/',(req,res) => {
     res.send('Hello World!')
 })
-
-// route
-// import authRouter from "./routers/auth.route.js";
-// import subscriptionRouter from './routers/subscription.route.js';
 
 app.post('/auth/login',login);
 app.get('/auth/register',register);
@@ -34,9 +27,13 @@ app.post('/subscription/',createSubscription);
 app.get('/subscription/:id',getSubscription);
 app.get('/subscription/',getSubscriptionList);
 app.put('/subscription/:id',editSubscription);
+app.delete('/subscription/:id',deleteOne);
 
-// app.use('/auth',authRouter);
-// app.use('/subscription',subscriptionRouter);
+app.get('/statement/',findAllStatement);
+app.get('/statement/:id',findOneStatement);
+
+app.put('/statement/triggerGenStatement',triggerGenStatement);
+app.put('/statement/triggerGenDunning',triggerGenerateDunning);
 
 app.listen(port,() => {
     console.log(`Example app listening on port ${port}`)

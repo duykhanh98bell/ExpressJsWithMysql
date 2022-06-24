@@ -16,8 +16,8 @@ export const authValidation = (data) => {
 
 export const loginValidation = (data) => {
     const schema = Joi.object({
-        username: Joi.string().min(6).required(),
-        password: Joi.string().min(6).required(),
+        username: Joi.string().min(6).regex(/^[a-zA-Z0-9_.-]*$/).trim().required(),
+        password: Joi.string().min(8).regex(/^[a-zA-Z0-9_.-]*$/).trim().required(),
     });
     return schema.validate(data);
 };

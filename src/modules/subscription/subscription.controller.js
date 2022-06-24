@@ -8,6 +8,7 @@ import { generateStatement } from "../statement/statement.controller.js";
 import { statementStatusEnum,fleetPlan,FILE_IND } from "../statement/statement.constant.js";
 import { formatYYYYMMDD,padCharsStartPlusOrMinusZero10 } from '../statement/statement.utils.js';
 import fs from 'fs';
+import { escape } from "mysql2";
 
 const findSubscriptionByUserId = async (userId) => {
     const [rows] = await conn.query(`select * from subscriptions where userId = ?`,[userId]);
@@ -18,7 +19,7 @@ const findSubscriptionByUserId = async (userId) => {
 export const createSubscription = async (req,res) => {
     try {
         const { error } = subCreateValidate(req.body);
-        if(error) return res.status(400).json({ message: error.details[0].message});
+        if(error) return res.status(400).json({ message: error.details[0].message });
 
         await Promise.all([
             checkUser(req.body.userId),
@@ -63,7 +64,7 @@ export const getSubscriptionList = async (req,res) => {
         const [countRecords] = await conn.query(sqlFilter);
         const responseHeader = await pagination(req.query,countRecords.length);
         if(responseHeader?.page) {
-            sqlFilter += ` limit ${responseHeader.perPage} offset ${(responseHeader.page - 1) * responseHeader.perPage}`;
+            sqlFilter += ` limit ${escape(responseHeader.perPage)} offset ${escape((responseHeader.page - 1) * responseHeader.perPage)}`;
         }
         const [rows] = await conn.query(sqlFilter);
         return res.status(200).json({ rows,responseHeader });
@@ -76,7 +77,7 @@ export const editSubscription = async (req,res) => {
     try {
         verifyNumberId(req.params.id);
         const { error } = subEditValidate(req.body);
-        if(error) return res.status(400).json({ message: error.details[0].message});
+        if(error) return res.status(400).json({ message: error.details[0].message });
 
         const [rows] = await conn.query(`select * from subscriptions where id = ?`,[req.params.id]);
         if(!rows[0]) throw new Error('This subscription is the undefined!')

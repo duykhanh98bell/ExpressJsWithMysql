@@ -5,22 +5,47 @@ import jwt from "jsonwebtoken";
 import { authValidation,loginValidation,editUserValidation } from "./auth.validate.js";
 import _ from 'lodash';
 import { pagination } from '../adapter/pagination.js';
+import { generate } from 'rand-token';
 
 export const login = async (req,res) => {
-    const { error } = loginValidation(req.body);
-    if(error) return res.status(400).json({ message: error.details[0].message});
-    const info = req.body;
-    const usernameToLower = info.username.toLowerCase();
+    try {
+        const { error } = loginValidation(req.body);
+        if(error) return res.status(400).json({ message: error.details[0].message });
+        const info = req.body;
+        const usernameToLower = info.username.toLowerCase();
 
-    const selectUser = `SELECT * FROM users WHERE username = '${usernameToLower}'`;
-    const [rows] = await conn.query(selectUser);
-    if(_.isEmpty(rows)) res.status(400).send('User is undefined');
+        const selectUser = `SELECT * FROM users WHERE username = '${usernameToLower}'`;
+        const [rows] = await conn.query(selectUser);
+        if(_.isEmpty(rows)) res.status(400).send('User is undefined');
 
-    const validPass = await bcrypt.compare(info.password,rows.password);
-    if(!validPass) return res.status(400).send('Password is wrong!!!');
+        const validPass = await bcrypt.compare(info.password,rows[0].pass);
+        if(!validPass) return res.status(400).send('Password is wrong!!!');
 
-    const token = jwt.sign({ _id: rows.id },process.env.TOKEN_SECRET);
-    return res.header('auth-token',token).send(token);
+        const token = jwt.sign(
+            {
+                id: rows[0].id,
+                username: rows[0].username,
+            },
+            process.env.TOKEN_SECRET,
+            {
+                expiresIn: process.env.TOKEN_LIFE
+            }
+        );
+
+        let refreshToken = generate(16);
+        if(!rows[0].refreshToken) {
+            await conn.query(`update users set refreshToken=? where id=?`,[refreshToken,rows[0].id]);
+        } else {
+            refreshToken = rows[0].refreshToken;
+        }
+        return res.header('auth-token',token).json({
+            message: "Login successfully!",
+            accessToken: token,
+            refreshToken
+        });
+    } catch(error) {
+        return res.json({ message: 'Login failed!' });
+    }
 }
 
 export const register = (req,res) => {
@@ -76,13 +101,13 @@ export const checkUser = async (id) => {
 export const createNewUser = async (req,res) => {
     try {
         const { error } = authValidation(req.body);
-        if(error) return res.status(400).json({message: error.details[0].message});
+        if(error) return res.status(400).json({ message: error.details[0].message });
         const info = req.body;
         const usernameToLower = info.username.toLowerCase();
 
         const selectUser = "SELECT * FROM users WHERE username = ?";
         const [rows] = await conn.query(selectUser,usernameToLower);
-        if(!_.isEmpty(rows)) return res.status(400).json({ message: 'username must be unique'});
+        if(!_.isEmpty(rows)) return res.status(400).json({ message: 'username must be unique' });
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(info.password,salt);
@@ -108,7 +133,7 @@ export const editUser = async (req,res) => {
         await checkUser(req.params.id);
 
         const { error } = editUserValidation(req.body);
-        if(error) return res.status(400).json({ message: error.details[0].message});
+        if(error) return res.status(400).json({ message: error.details[0].message });
 
         if(req.body?.years_old && Number(req.body.years_old || 0) < 16) return res.status(400).json({ message: 'years old' })
 

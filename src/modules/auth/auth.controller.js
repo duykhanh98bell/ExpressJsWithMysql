@@ -4,8 +4,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { authValidation,loginValidation,editUserValidation } from "./auth.validate.js";
 import _ from 'lodash';
-import { pagination } from '../adapter/pagination.js';
 import { generate } from 'rand-token';
+import authService from './auth.service.js';
 
 export const login = async (req,res) => {
     try {
@@ -58,14 +58,8 @@ export const register = (req,res) => {
 
 export const getAllUsers = async (req,res) => {
     try {
-        let sql = 'SELECT * FROM users';
-        const [countRecords] = await conn.query(sql);
-        const responseHeader = await pagination(req.query,countRecords.length);
-        if(responseHeader?.page) {
-            sql += ` limit ${responseHeader.perPage} offset ${(responseHeader.page - 1) * responseHeader.perPage}`;
-        }
-        const [rows] = await conn.query(sql);
-        return res.status(200).json({ rows,responseHeader });
+        const rows = await authService.getAllUsers(req.query);
+        return res.status(201).json(rows)
     } catch(error) {
         return res.json({ message: error.message });
     }
@@ -73,28 +67,10 @@ export const getAllUsers = async (req,res) => {
 
 export const findOne = async (req,res) => {
     try {
-        const callFind = await checkUser(req.params.id);
-        return res.status(200).json({ user: callFind[0] });
+        const callFind = await authService.findUser(req.params.id);
+        return res.status(200).json({ user: callFind });
     } catch(error) {
         return res.json({ message: error.message });
-    }
-}
-
-export const verifyNumberId = (id) => {
-    const regexTest = new RegExp(/^[0-9]*$/);
-    if(!regexTest.test(Number(id))) throw new Error('Id must be number');
-    return true;
-}
-
-export const checkUser = async (id) => {
-    try {
-        verifyNumberId(id);
-        const sql = 'SELECT * FROM users WHERE id = ?';
-        const [rows] = await conn.query(sql,id);
-        if(_.isEmpty(rows)) throw new Error('User not found!');
-        return rows;
-    } catch(error) {
-        throw new Error(error.message);
     }
 }
 
@@ -102,26 +78,7 @@ export const createNewUser = async (req,res) => {
     try {
         const { error } = authValidation(req.body);
         if(error) return res.status(400).json({ message: error.details[0].message });
-        const info = req.body;
-        const usernameToLower = info.username.toLowerCase();
-
-        const selectUser = "SELECT * FROM users WHERE username = ?";
-        const [rows] = await conn.query(selectUser,usernameToLower);
-        if(!_.isEmpty(rows)) return res.status(400).json({ message: 'username must be unique' });
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(info.password,salt);
-        const payload = {
-            firstname: info.firstname,
-            lastname: info.lastname,
-            username: usernameToLower,
-            pass: hashedPassword,
-            email: info?.email,
-            years_old:
-                info?.years_old
-        }
-        const sqlInsert = "INSERT INTO users SET ?";
-        await conn.query(sqlInsert,payload);
+        await authService.createNewUser(req.body);
         return res.status(201).json({ message: 'Added successfully!' })
     } catch(error) {
         return res.json({ message: error.message });
@@ -130,16 +87,10 @@ export const createNewUser = async (req,res) => {
 
 export const editUser = async (req,res) => {
     try {
-        await checkUser(req.params.id);
-
         const { error } = editUserValidation(req.body);
         if(error) return res.status(400).json({ message: error.details[0].message });
+        await authService.updateUser(req.params.id,req.body);
 
-        if(req.body?.years_old && Number(req.body.years_old || 0) < 16) return res.status(400).json({ message: 'years old' })
-
-        const str = Object.keys(req.body).map(key => key + "=" + `'${req.body[key]}'`).join(", ");
-        const updateOne = `UPDATE users SET ${str} WHERE id=?`;
-        await conn.query(updateOne,req.params.id);
 
         return res.status(201).json({
             message: 'Updated',
@@ -151,10 +102,7 @@ export const editUser = async (req,res) => {
 
 export const deleteUser = async (req,res) => {
     try {
-        await checkUser(req.params.id);
-
-        const deleteOne = "DELETE FROM users WHERE id=?";
-        await conn.query(deleteOne,[req.params.id]);
+        await authService.deleteUser(req.params.id);
         return res.status(201).json({
             message: 'Deleted!',
         })

@@ -8,6 +8,7 @@ import { formatYYYYMMDD,padCharsStartPlusOrMinusZero10 } from '../statement/stat
 import fs from 'fs';
 import _ from 'lodash';
 import statementRepository from '../statement/statement.repository.js';
+import AppError from '../../shared/error.js';
 
 
 const getSubscriptions = async (query) => {
@@ -34,29 +35,29 @@ const createSubscription = async (payload) => {
         authRepository.findById(payload.userId),
         subscriptionRepository.findOne({ userId: payload.userId })
     ])
-    if(!isUser) throw new Error('User not found')
-    if(isSubscription) throw new Error('User has been created subscription!')
+    if(!isUser) throw new AppError({ message: 'User not found' })
+    if(isSubscription) throw new AppError({ message: 'User has been created subscription!}' })
 
     await subscriptionRepository.create(payloadCreateSub);
 }
 
 const editSubscription = async (id,payload) => {
     const isSubscription = await subscriptionRepository.findById(id);
-    if(!isSubscription) throw new Error('This subscription is the undefined!');
+    if(!isSubscription) throw new AppError({ message: 'This subscription is the undefined!' });
 
     return await subscriptionRepository.updateOne(id,payload)
 }
 
 const deleteSubscription = async (id) => {
     const isSubscription = await subscriptionRepository.findById(id);
-    if(!isSubscription) throw new Error('This subscription is the undefined!');
+    if(!isSubscription) throw new AppError({ message: 'This subscription is the undefined!' });
 
     return await subscriptionRepository.deleteById(id)
 }
 
 const generateStatementFunc = async (triggerDate) => {
     if(moment(triggerDate).date() != 15) {
-        throw new Error('Generate only 15th of every month');
+        throw new AppError({ message: 'Generate only 15th of every month' });
     }
     const [SubscriptionList] = await subscriptionRepository.findOne({ billingAt: triggerDate });
     let userIdGeneratedStatement = [];
@@ -101,7 +102,7 @@ const updateBillingDateSub = async (start,end,billingAt,id) => {
 
 const genDunningRawFile = async (triggerDate) => {
     if(moment(triggerDate).date() != 15) {
-        throw new Error('Generate only 15th of every month');
+        throw new AppError({ message: 'Generate only 15th of every month' });
     }
     console.log('Start generate dunning file');
     const statementOverDue = await subscriptionRepository.statementOverDue(triggerDate);

@@ -1,5 +1,5 @@
 // const conn = require("../connectDb/connection");
-import conn from "../../connectDb/connection.js";
+import * as conn from "../../connectDb/connection.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { authValidation,loginValidation,editUserValidation } from "./auth.validate.js";

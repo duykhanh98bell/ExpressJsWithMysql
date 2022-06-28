@@ -5,10 +5,19 @@ import pkg from 'body-parser';
 import authRoute from "./modules/auth/auth.route.js";
 import statementRoute from "./modules/statement/statement.route.js";
 import subscriptionRoute from "./modules/subscription/subscription.route.js";
+import conn from './connectDb/connection.js';
+import response from './shared/customResponse.js';
+import compression from "compression";
+import limiter from './middleware/rateLimit.js';
 const app = express()
 const port = process.env.PORT;
 const { json } = pkg;
 
+// call db
+conn;
+app.use(limiter)
+app.use(compression())
+app.use(response())
 app.use(json());
 
 app.get('/',(req,res) => {

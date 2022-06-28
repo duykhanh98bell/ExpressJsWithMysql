@@ -1,6 +1,6 @@
 export default {
     '200': '',
-    '400': 'Handle error',
+    '400': 'Bad request',
     '401': 'Unauthorized',
     '402': 'Payment Required',
     '403': 'Forbidden',

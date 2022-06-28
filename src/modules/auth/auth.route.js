@@ -1,16 +1,18 @@
 import express from 'express'
-// import { verifyToken } from '../verifyToken/verifyToken.js';
-import { createNewUser,deleteUser,editUser,findOne,getAllUsers,login,register } from './auth.controller.js';
+import { verifyToken } from '../verifyToken/verifyToken.js';
+import authController from './auth.controller.js';
 const router = express.Router();
 
-router.get("/register",register);
+router.get("/register",authController.register);
 
-router.post("/login",login);
-router.post("/",createNewUser);
+router.post("/login",authController.login);
+router.post("/logout",authController.login);
+router.post("/refreshToken",authController.refreshToken);
+router.post("/",authController.createNewUser);
 
-router.get("/",getAllUsers);
-router.get("/:id",findOne);
-router.put("/:id",editUser);
-router.delete("/:id",deleteUser);
+router.get("/",verifyToken,authController.getAllUsers);
+router.get("/:id",verifyToken,authController.findOne);
+router.put("/:id",authController.editUser);
+router.delete("/:id",authController.deleteUser);
 
 export default router;

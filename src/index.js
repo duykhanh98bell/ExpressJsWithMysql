@@ -13,21 +13,18 @@ const app = express()
 const port = process.env.PORT;
 const { json } = pkg;
 
-// call db
 conn;
 app.use(limiter)
-app.use(compression())
 app.use(response())
 app.use(json());
+app.use(compression())
 
 app.get('/',(req,res) => {
     res.send('Hello World!')
 })
 
 app.use('/auth',authRoute);
-
 app.use('/statement',statementRoute)
-
 app.use('/subscription',subscriptionRoute)
 
 app.listen(port,() => {

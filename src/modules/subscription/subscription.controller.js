@@ -1,8 +1,6 @@
-// import { checkUser } from "../auth/auth.controller.js";
 import moment from 'moment-timezone';
 import { subCreateValidate,subEditValidate } from "./subscription.validate.js";
 import subscriptionService from './subscription.service.js';
-// import Logger from "lib-logger";
 import AppError from '../../shared/error.js';
 
 const createSubscription = async (req,res) => {
@@ -55,7 +53,6 @@ const deleteSubscription = async (req,res) => {
         res.sendError({ message: error.message,code: error.code })
     }
 }
-
 
 const triggerGenStatement = async (req,res) => {
     try {

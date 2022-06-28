@@ -25,11 +25,12 @@ const findById = async (id) => {
     return rows[0];
 }
 
-const findOne = async (obj) => {
+const findOne = async (obj,fields) => {
     const strKey = Object.keys(obj).map(key => key + "=?").join("AND ");
+    const returnFields = fields ? Object.keys(fields).map(key => fields[key] && `${key}`).join(", ") : ' * ';
     const arrValue = [];
     Object.keys(obj).map(key => arrValue.push(obj[key]))
-    const sql = `SELECT * FROM subscriptions WHERE is_deleted=0 AND ${strKey}`;
+    const sql = `SELECT ${returnFields} FROM subscriptions WHERE is_deleted=0 AND ${strKey}`;
     const [rows] = await conn.query(sql,arrValue);
     return rows[0];
 }

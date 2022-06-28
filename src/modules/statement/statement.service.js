@@ -1,5 +1,4 @@
 import statementRepository from "./statement.repository.js";
-import { statementCreateValidate } from './statement.validate.js';
 import moment from 'moment-timezone';
 
 const getStatements = async (query) => {
@@ -11,9 +10,6 @@ const getStatement = async (id) => {
 }
 
 const generateStatement = async (data) => {
-    const { error } = statementCreateValidate(data);
-    if(error) throw new Error(error.details[0].message);
-
     const {
         stmtStatus,
         subscriptionId,

@@ -26,7 +26,7 @@ export default function response() {
          * @param data
          * @param messFormat
          */
-        res.sendError = function({ code,message,httpStatusCode,data,messFormat }) {
+        res.sendError = function({ code,message,httpStatusCode,data }) {
             if(!code) code = '400';
             message = message || error_code[code];
 

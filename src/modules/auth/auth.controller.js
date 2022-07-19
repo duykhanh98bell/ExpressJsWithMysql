@@ -1,5 +1,4 @@
 // const conn = require("../connectDb/connection");
-import * as conn from "../../connectDb/connection.js";
 import { authValidation,loginValidation,editUserValidation } from "./auth.validate.js";
 import authService from './auth.service.js';
 
@@ -37,14 +36,6 @@ async function refreshToken(req,res) {
         res.sendError({ code: error.code,message: error.message })
     }
 }
-
-const register = (req,res) => {
-    const sql = 'SELECT * FROM users';
-    conn.query(sql,(err,result) => {
-        if(err) throw err;
-        res.json({ register: result })
-    })
-};
 
 const getAllUsers = async (req,res) => {
     try {
@@ -99,4 +90,4 @@ const deleteUser = async (req,res) => {
     }
 }
 
-export default { login,refreshToken,register,getAllUsers,findOne,createNewUser,editUser,deleteUser }
+export default { login,refreshToken,getAllUsers,findOne,createNewUser,editUser,deleteUser }

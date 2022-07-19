@@ -30,6 +30,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^2.3.3",
     "rand-token": "^1.0.1",
+    "redis": "^4.1.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

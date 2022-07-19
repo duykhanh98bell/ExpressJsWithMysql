@@ -51,18 +51,18 @@ async function logout(tokenObj) {
 }
 
 async function refreshToken(refreshToken) {
-    const isTokenUser = await authRepository.findOne({ refreshToken },{ refreshToken: 1,username: 1 });
-    if(!isTokenUser) throw new AppError({ message: 'refreshToken not found!',code: '401' })
+    const isUser = await authRepository.findOne({ refreshToken },{ refreshToken: 1,username: 1,id: 1 });
+    if(!isUser) throw new AppError({ message: 'refreshToken not found!',code: '401' })
     let verified;
     try {
         verified = jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET);
     } catch(error) {
         throw new AppError({ message: error.message,code: error.code });
     }
-    if(verified.username !== isTokenUser.username) throw new AppError({ code: '403' })
+    if(verified.username !== isUser.username) throw new AppError({ code: '403' })
 
-
-    return verified
+    const newAccessToken = await generateAccessToken(isUser);
+    return newAccessToken
 
 
 }
